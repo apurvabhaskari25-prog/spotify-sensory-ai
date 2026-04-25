@@ -1,0 +1,21 @@
+{
+  "rows_used_for_training": 12000,
+  "feature_count": 28,
+  "train_metrics": {
+    "rmse": 2.1874887166813877,
+    "mae": 1.732850648136769,
+    "r2": 0.967131395452842
+  },
+  "test_metrics": {
+    "rmse": 2.198983417883571,
+    "mae": 1.7575890352014263,
+    "r2": 0.9679481437163997
+  },
+  "deam_reference": {
+    "valence_mean": 4.90414539400666,
+    "valence_std": 1.1739138210344675,
+    "arousal_mean": 4.814028856825749,
+    "arousal_std": 1.2818313650577688,
+    "engagement_anchor": 0.6163207013574659
+  }
+}

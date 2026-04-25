@@ -1,3 +1,56 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import streamlit as st
+
+from model import RidgeRegressor
+from color_analysis import ColorEmotionMapper
+from engine import predict_with_explanations, recommend_tracks, score_batch
+from data_pipeline import AUDIO_FEATURES
+
+
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import streamlit as st
+from model import RidgeRegressor
+from color_analysis import ColorEmotionMapper
+from engine import predict_with_explanations, recommend_tracks, score_batch
+
+ROOT = Path(__file__).resolve().parent
+MODEL_PATH = ROOT / "sensory_model.json"
+EMOTION_CSV = ROOT / "emotion_palette.csv"
+LIBRARY_PATH = ROOT / "training_dataset.csv"
+TOP_TRACKS_PATH = ROOT / "top_spotify_recommendations.csv"
+def playlist_message(score: float) -> str:
+    if score >= 80:
+        return "High-conversion sensory mix: upbeat, vibrant, and attention-grabbing."
+    if score >= 65:
+        return "Strong engagement potential: suitable for personalized marketing playlists."
+    if score >= 50:
+        return "Moderate influence: works better with stronger visuals or better sequencing."
+    return "Low sensory pull: try warmer colors, higher danceability, or stronger emotional contrast."
+def render_palette(colors: list[str]) -> None:
+    if not colors:
+        return
+
+    html = "".join(
+        f"<div style='width:68px;height:68px;border-radius:14px;background:{color};display:inline-block;margin-right:10px;border:1px solid rgba(0,0,0,0.08);'></div>"
+        for color in colors
+    )
+    st.markdown(html, unsafe_allow_html=True)
+def download_button_from_df(df: pd.DataFrame, label: str, filename: str) -> None:
+    st.download_button(
+        label=label,
+        data=df.to_csv(index=False).encode("utf-8"),
+        file_name=filename,
+        mime="text/csv",
+    )
+
 def main() -> None:
     st.set_page_config(page_title="AI Predicted Sensory Marketing", layout="wide")
     st.title("AI-Predicted Sensory Marketing")

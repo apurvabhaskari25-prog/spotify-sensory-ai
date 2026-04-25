@@ -135,3 +135,32 @@ class ColorEmotionMapper:
             "warm": 0.70 * valence + 0.30 * energy,
             "youthful": 0.55 * danceability + 0.25 * energy + 0.20 * popularity,
         }
+
+    def recommend_palette_rows(
+        self,
+        target_tag_scores: dict[str, float],
+        top_k: int = 3,
+    ) -> list[dict[str, object]]:
+        target = np.array([float(target_tag_scores.get(tag, 0.0)) for tag in self.tag_cols], dtype=float)
+        if np.allclose(target, 0):
+            return []
+
+        tag_matrix = self.row_tags
+        scores = (tag_matrix @ target) / (
+            np.linalg.norm(tag_matrix, axis=1) * np.linalg.norm(target) + 1e-9
+        )
+        best_idx = np.argsort(scores)[::-1][:top_k]
+
+        recommendations = []
+        for idx in best_idx:
+            row = self.palette.iloc[idx]
+            colors = [str(row[col]) for col in self.color_cols]
+            tag_values = {tag: float(row[tag]) for tag in self.tag_cols}
+            recommendations.append(
+                {
+                    "colors": colors,
+                    "score": float(scores[idx]),
+                    "tags": tag_values,
+                }
+            )
+        return recommendations

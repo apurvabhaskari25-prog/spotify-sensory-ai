@@ -6,7 +6,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .color_analysis import COLOR_TAGS, ColorEmotionMapper
+from color_analysis import COLOR_TAGS, ColorEmotionMapper
+
 
 
 AUDIO_FEATURES = [

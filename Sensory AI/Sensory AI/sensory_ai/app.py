@@ -213,6 +213,7 @@ def example_box() -> None:
 def main() -> None:
     st.set_page_config(page_title="Spotify Sensory AI", layout="wide")
     st.title("Spotify Sensory AI")
+
     st.caption("Predicting How Color & Sound Influence Subconscious Buying Behavior")
     st.write(
         "This AI tool predicts how album art color and audio features influence user engagement and subconscious buying behavior on Spotify."

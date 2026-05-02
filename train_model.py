@@ -3,20 +3,22 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pandas as pd
-
-from src.sensory_ai.data_pipeline import build_training_dataset
-from src.sensory_ai.model import RidgeRegressor, regression_metrics, train_test_split
+from data_pipeline import build_training_dataset
+from model import RidgeRegressor, regression_metrics, train_test_split
 
 
 ROOT = Path(__file__).resolve().parent
-SPOTIFY_CSV = ROOT / "data" / "raw" / "spotify" / "SpotifyAudioFeaturesApril2019.csv"
-EMOTION_CSV = ROOT / "data" / "raw" / "emotion_palette.csv"
-DEAM_ROOT = ROOT / "data" / "raw" / "deam"
-MODEL_PATH = ROOT / "artifacts" / "sensory_model.json"
-TRAINING_DATA_PATH = ROOT / "artifacts" / "training_dataset.csv"
-TOP_TRACKS_PATH = ROOT / "artifacts" / "top_spotify_recommendations.csv"
-REPORT_PATH = ROOT / "artifacts" / "training_report.json"
+PROJECT_ROOT = ROOT.parents[2]
+
+SPOTIFY_CSV = PROJECT_ROOT / "SpotifyAudioFeaturesApril2019.csv"
+EMOTION_CSV = PROJECT_ROOT / "emotion_palette.csv"
+DEAM_ROOT = ROOT / "data"
+
+MODEL_PATH = ROOT / "sensory_model.json"
+TRAINING_DATA_PATH = ROOT / "training_dataset.csv"
+TOP_TRACKS_PATH = ROOT / "top_spotify_recommendations.csv"
+REPORT_PATH = ROOT / "training_report.json"
+
 
 
 def main() -> None:
@@ -35,7 +37,6 @@ def main() -> None:
     train_metrics = regression_metrics(y_train, model.predict(x_train))
     test_metrics = regression_metrics(y_test, model.predict(x_test))
 
-    MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
     model.save(MODEL_PATH, metrics={"train": train_metrics, "test": test_metrics})
     dataset.to_csv(TRAINING_DATA_PATH, index=False)
 

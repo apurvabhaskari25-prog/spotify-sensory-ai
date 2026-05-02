@@ -12,6 +12,7 @@ from model import RidgeRegressor
 
 
 
+
 @dataclass
 class PredictionResult:
     score: float

@@ -10,12 +10,10 @@ from data_pipeline import AUDIO_FEATURES
 from engine import predict_with_explanations, recommend_tracks, score_batch
 from model import RidgeRegressor
 
-
 ROOT = Path(__file__).resolve().parent
-PROJECT_ROOT = ROOT.parents[2]
 
 MODEL_PATH = ROOT / "sensory_model.json"
-EMOTION_CSV = PROJECT_ROOT / "emotion_palette.csv"
+EMOTION_CSV = ROOT / "emotion_palette.csv"
 LIBRARY_PATH = ROOT / "training_dataset.csv"
 TOP_TRACKS_PATH = ROOT / "top_spotify_recommendations.csv"
 

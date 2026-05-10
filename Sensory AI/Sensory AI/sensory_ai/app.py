@@ -10,6 +10,7 @@ from data_pipeline import AUDIO_FEATURES
 from engine import predict_with_explanations, recommend_tracks, score_batch
 from model import RidgeRegressor
 
+
 ROOT = Path(__file__).resolve().parent
 
 MODEL_PATH = ROOT / "sensory_model.json"
@@ -18,25 +19,55 @@ LIBRARY_PATH = ROOT / "training_dataset.csv"
 TOP_TRACKS_PATH = ROOT / "top_spotify_recommendations.csv"
 
 
-
 def playlist_message(score: float) -> str:
     if score >= 80:
-        return "This combination suggests strong subconscious buying behavior signals, high emotional arousal, and stronger listening engagement on Spotify. It is well suited to Discover Weekly, Release Radar, and high-save mood playlists."
+        return (
+            "This combination suggests strong subconscious buying behavior signals, "
+            "high emotional arousal, and stronger listening engagement on Spotify. "
+            "It is well suited to Discover Weekly, Release Radar, and high-save mood playlists."
+        )
     if score >= 65:
-        return "This combination shows good subconscious engagement potential and can support longer listening sessions, mood playlist retention, and playlist saves."
+        return (
+            "This combination shows good subconscious engagement potential and can support "
+            "longer listening sessions, mood playlist retention, and playlist saves."
+        )
     if score >= 50:
-        return "This combination has moderate influence. Better color-sound alignment could improve emotional arousal and subconscious listening engagement."
-    return "This combination is likely to have weaker subconscious pull. Stronger warmth, positivity, or tempo-energy alignment may improve engagement."
+        return (
+            "This combination has moderate influence. Better color-sound alignment could "
+            "improve emotional arousal and subconscious listening engagement."
+        )
+    return (
+        "This combination is likely to have weaker subconscious pull. Stronger warmth, "
+        "positivity, or tempo-energy alignment may improve engagement."
+    )
 
 
 def render_palette(colors: list[str]) -> None:
     if not colors:
         return
+
     html = "".join(
-        f"<div style='width:68px;height:68px;border-radius:14px;background:{color};display:inline-block;margin-right:10px;border:1px solid rgba(0,0,0,0.08);'></div>"
+        (
+            f"<div style='width:68px;height:68px;border-radius:14px;"
+            f"background:{color};display:inline-block;margin-right:10px;"
+            f"border:1px solid rgba(0,0,0,0.08);'></div>"
+        )
         for color in colors
     )
     st.markdown(html, unsafe_allow_html=True)
+
+
+def render_single_color_swatch(hex_color: str, label: str = "Dominant Color") -> None:
+    st.markdown(
+        f"""
+        <div style="display:flex; align-items:center; gap:12px; margin:8px 0 12px 0;">
+            <div style="width:28px; height:28px; border-radius:6px; background:{hex_color};
+                        border:1px solid rgba(0,0,0,0.2);"></div>
+            <div><strong>{label}:</strong> {hex_color}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def download_button_from_df(df: pd.DataFrame, label: str, filename: str) -> None:
@@ -45,6 +76,49 @@ def download_button_from_df(df: pd.DataFrame, label: str, filename: str) -> None
         data=df.to_csv(index=False).encode("utf-8"),
         file_name=filename,
         mime="text/csv",
+    )
+
+
+def build_sample_batch_df() -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {
+                "acousticness": 0.22,
+                "danceability": 0.78,
+                "energy": 0.81,
+                "instrumentalness": 0.01,
+                "liveness": 0.14,
+                "loudness": -5.2,
+                "speechiness": 0.06,
+                "tempo": 124.0,
+                "valence": 0.72,
+                "popularity": 78.0,
+            },
+            {
+                "acousticness": 0.61,
+                "danceability": 0.52,
+                "energy": 0.48,
+                "instrumentalness": 0.03,
+                "liveness": 0.19,
+                "loudness": -8.4,
+                "speechiness": 0.05,
+                "tempo": 98.0,
+                "valence": 0.44,
+                "popularity": 61.0,
+            },
+            {
+                "acousticness": 0.11,
+                "danceability": 0.69,
+                "energy": 0.88,
+                "instrumentalness": 0.00,
+                "liveness": 0.21,
+                "loudness": -4.8,
+                "speechiness": 0.09,
+                "tempo": 132.0,
+                "valence": 0.83,
+                "popularity": 84.0,
+            },
+        ]
     )
 
 
@@ -70,6 +144,7 @@ def dominant_color_name(color_scores: dict[str, float]) -> str:
     ranked = sorted(color_scores.items(), key=lambda item: item[1], reverse=True)
     if not ranked:
         return "Balanced tone"
+
     top = ranked[0][0]
     mapping = {
         "warm": "Warm tone",
@@ -104,16 +179,19 @@ def sensory_congruence_label(
     if gap <= 0.18:
         return (
             "Strong",
-            "The album-art color and sound profile support the same emotional message. This usually improves subconscious engagement, click appeal, and listening continuity.",
+            "The album-art color and sound profile support the same emotional message. "
+            "This usually improves subconscious engagement, click appeal, and listening continuity.",
         )
     if gap <= 0.35:
         return (
             "Moderate",
-            "The sound and color cues are partially aligned. This can still work well, but stronger mood matching may improve playlist saves and first-click attraction.",
+            "The sound and color cues are partially aligned. This can still work well, "
+            "but stronger mood matching may improve playlist saves and first-click attraction.",
         )
     return (
         "Weak",
-        "The visual and audio signals are pulling in different emotional directions. That can weaken subconscious influence and reduce listening engagement.",
+        "The visual and audio signals are pulling in different emotional directions. "
+        "That can weaken subconscious influence and reduce listening engagement.",
     )
 
 
@@ -133,26 +211,41 @@ def combined_insight(
 
     return (
         f"The {dominant_color.lower()} visual profile combined with {valence_band} valence, "
-        f"{tempo_band} tempo, and energy level {energy:.2f} creates a sensory pattern that affects emotional arousal "
-        f"and subconscious listening behavior. When Spotify users see a {warm_band} visual cue alongside a track with this mood profile, "
-        f"they are more likely to feel curiosity, continue listening, and save playlists when the emotional cues are aligned."
+        f"{tempo_band} tempo, and energy level {energy:.2f} creates a sensory pattern that affects "
+        f"emotional arousal and subconscious listening behavior. When Spotify users see a {warm_band} "
+        f"visual cue alongside a track with this mood profile, they are more likely to feel curiosity, "
+        f"continue listening, and save playlists when the emotional cues are aligned."
     )
 
 
 def contribution_summary(contribution_df: pd.DataFrame) -> pd.DataFrame:
     audio_total = float(
-        contribution_df.loc[~contribution_df["feature"].str.startswith("color_"), "abs_contribution"].sum()
+        contribution_df.loc[
+            ~contribution_df["feature"].str.startswith("color_"),
+            "abs_contribution",
+        ].sum()
     )
     color_total = float(
-        contribution_df.loc[contribution_df["feature"].str.startswith("color_"), "abs_contribution"].sum()
+        contribution_df.loc[
+            contribution_df["feature"].str.startswith("color_"),
+            "abs_contribution",
+        ].sum()
     )
-    total = audio_total + color_total + 1e-9
+
+    total = audio_total + color_total
+    if total == 0:
+        audio_pct = 0.0
+        color_pct = 0.0
+    else:
+        audio_pct = round((audio_total / total) * 100, 2)
+        color_pct = round((color_total / total) * 100, 2)
+
     return pd.DataFrame(
         {
             "Contribution Type": ["Sound Features", "Color Features"],
-            "Relative Influence": [audio_total / total, color_total / total],
+            "Contribution (%)": [audio_pct, color_pct],
         }
-    ).set_index("Contribution Type")
+    )
 
 
 def recommendation_message(score: float, audio_inputs: dict[str, float], warmth: float) -> str:
@@ -160,9 +253,15 @@ def recommendation_message(score: float, audio_inputs: dict[str, float], warmth:
     valence = float(audio_inputs["valence"])
 
     if score >= 80 and tempo >= 118 and valence >= 0.60:
-        return "Best for Discover Weekly or Release Radar, energetic morning playlists, and festive-season listening where Spotify users respond to high arousal and positive mood."
+        return (
+            "Best for Discover Weekly or Release Radar, energetic morning playlists, "
+            "and festive-season listening where Spotify users respond to high arousal and positive mood."
+        )
     if score >= 70 and warmth >= 55:
-        return "Well suited for mood playlists, upbeat recommendation surfaces, and festive periods in India where warm color + lively sound can improve playlist saves."
+        return (
+            "Well suited for mood playlists, upbeat recommendation surfaces, and festive periods in India "
+            "where warm color + lively sound can improve playlist saves."
+        )
     if score >= 60:
         return "Useful for personalized mood playlists where emotional fit matters more than instant intensity."
     return "Better suited for niche or reflective playlist contexts unless the visual warmth or musical positivity is increased."
@@ -182,7 +281,11 @@ def why_this_score_bullets(
         if warmth >= 55
         else "Cooler or softer colors are reducing urgency and excitement"
     )
-    tempo_direction = "Higher tempo is increasing arousal" if tempo >= 118 else "Tempo is moderate, so arousal is more controlled"
+    tempo_direction = (
+        "Higher tempo is increasing arousal"
+        if tempo >= 118
+        else "Tempo is moderate, so arousal is more controlled"
+    )
     valence_direction = (
         "High valence is making the mood more positive and approachable"
         if valence >= 0.60
@@ -195,10 +298,10 @@ def why_this_score_bullets(
     )
 
     return [
-        f"{color_direction}, which matters because users often respond subconsciously to visual warmth before deciding to click or listen.",
-        f"{tempo_direction}, while {valence_direction}. Together these shape emotional arousal and listening mood.",
-        f"{energy_direction}, making the soundtrack either more playlist-friendly or more subdued.",
-        "The combination of color and sound matters because subconscious influence is stronger when the emotional signal is coherent across both thumbnail and audio mood.",
+        f"{color_direction}, which matters because users often respond subconsciously to visual warmth before deciding to click or listen (Labrecque & Milne, 2012).",
+        f"{tempo_direction}, while {valence_direction}. Together these shape emotional arousal and listening mood, which is consistent with music-emotion research (Juslin & Västfjäll, 2008).",
+        f"{energy_direction}, making the soundtrack either more playlist-friendly or more subdued in perceived engagement terms (North & Hargreaves, 1999).",
+        "The combination of color and sound matters because subconscious influence is stronger when the emotional signal is coherent across both thumbnail and audio mood (Milliman, 1982).",
     ]
 
 
@@ -211,14 +314,13 @@ def example_box() -> None:
 def main() -> None:
     st.set_page_config(page_title="Spotify Sensory AI", layout="wide")
     st.title("Spotify Sensory AI")
-
     st.caption("Predicting How Color & Sound Influence Subconscious Buying Behavior")
     st.write(
         "This AI tool predicts how album art color and audio features influence user engagement and subconscious buying behavior on Spotify."
     )
 
     if not MODEL_PATH.exists():
-        st.error("Model artifact not found. Run `train_model.py` first.")
+        st.error("Model artifact not found. Run train_model.py first.")
         st.stop()
 
     model = RidgeRegressor.load(MODEL_PATH)
@@ -246,13 +348,12 @@ def main() -> None:
     image_path = None
     if uploaded_file is not None:
         image_path = ROOT / f"uploaded_{uploaded_file.name}"
-
-        image_path.parent.mkdir(parents=True, exist_ok=True)
         image_path.write_bytes(uploaded_file.getbuffer())
 
     result = predict_with_explanations(model, mapper, audio_inputs, image_path=image_path)
     score = result.score
     dominant_color = dominant_color_name(result.color_scores)
+    dominant_hex = result.dominant_colors[0] if result.dominant_colors else "#999999"
     warm = warmth_score(result.color_scores)
     saturation = saturation_score(result.color_scores)
     congruence_label, congruence_text = sensory_congruence_label(audio_inputs, result.color_scores)
@@ -275,7 +376,8 @@ def main() -> None:
             st.subheader("Color Analysis")
             color_df = pd.DataFrame(
                 [
-                    ("Dominant Color", dominant_color),
+                    ("Dominant Color Profile", dominant_color),
+                    ("Dominant Hex", dominant_hex),
                     ("Warmth Score", f"{warm:.1f} / 100"),
                     ("Saturation Score", f"{saturation:.1f} / 100"),
                 ],
@@ -301,6 +403,16 @@ def main() -> None:
             for bullet in why_this_score_bullets(audio_inputs, result.color_scores, warm):
                 st.markdown(f"- {bullet}")
 
+            with st.expander("References"):
+                st.markdown(
+                    """
+                    - Labrecque, L. I., & Milne, G. R. (2012). Exciting red and competent blue: The importance of color in marketing.
+                    - Juslin, P. N., & Västfjäll, D. (2008). Emotional responses to music: The need to consider underlying mechanisms.
+                    - North, A. C., & Hargreaves, D. J. (1999). Music and consumer behaviour.
+                    - Milliman, R. E. (1982). Using background music to affect the behavior of supermarket shoppers.
+                    """
+                )
+
             ranked_tags = sorted(result.color_scores.items(), key=lambda item: item[1], reverse=True)[:6]
             st.subheader("Top Sensory Color Signals")
             st.dataframe(pd.DataFrame(ranked_tags, columns=["Color Emotion Tag", "Score"]), hide_index=True)
@@ -311,14 +423,16 @@ def main() -> None:
                 st.image(str(image_path), caption="Uploaded visual input", use_container_width=True)
             if result.dominant_colors:
                 render_palette(result.dominant_colors)
+                render_single_color_swatch(dominant_hex)
             else:
                 st.info("No image uploaded. A synthetic visual profile was inferred from the audio mood.")
             example_box()
 
         st.subheader("Color vs Sound Contribution")
-        st.bar_chart(contribution_df)
+        st.dataframe(contribution_df, hide_index=True, use_container_width=True)
+        st.bar_chart(contribution_df.set_index("Contribution Type"))
         st.caption(
-            "This shows whether the final score was influenced more by album-art color features or sound features like tempo, valence, and energy."
+            "This chart shows the relative percentage contribution of sound features versus color features in the final prediction. The percentages are normalized from the model's absolute feature contributions."
         )
 
         st.subheader("Feature Contribution Snapshot")
@@ -374,6 +488,14 @@ def main() -> None:
         st.subheader("Batch Scoring")
         st.write("Upload a CSV with the audio columns used by the model to score many tracks at once.")
         st.code(", ".join(AUDIO_FEATURES))
+
+        sample_batch_df = build_sample_batch_df()
+        download_button_from_df(
+            sample_batch_df,
+            label="Download sample CSV",
+            filename="sample_batch_scoring_input.csv",
+        )
+
         batch_file = st.file_uploader("Upload batch audio CSV", type=["csv"], key="batch_csv")
 
         if batch_file is not None:
